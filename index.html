@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="A novel pipeline that makes the widely used segmentation model and NeRF work compatibly under a unified framework, for facilitating contextaware 3D scene perception.">
+  <meta name="keywords" content="Semantic Segmentation, Distillation, Generalized NeRF">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GP-NeRF: Generalized Perception NeRF for Context-Aware 3D Scene Understanding</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://lifuguan.github.io">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+
+      <div class="navbar-item has-dropdown is-hoverable">
+        <a class="navbar-link">
+          More Research
+        </a>
+        <div class="navbar-dropdown">
+          <a class="navbar-item" href="https://hypernerf.github.io">
+            HyperNeRF
+          </a>
+          <a class="navbar-item" href="https://nerfies.github.io">
+            Nerfies
+          </a>
+          <a class="navbar-item" href="https://latentfusion.github.io">
+            LatentFusion
+          </a>
+          <a class="navbar-item" href="https://photoshape.github.io">
+            PhotoShape
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">GP-NeRF: Generalized Perception NeRF for Context-Aware 3D Scene Understanding</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://lifuguan.github.io">Hao Li</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://zdw-nwpu.github.io/dingwenz.github.com/">Dingwen Zhang</a><sup>1,*</sup>,</span>
+            <span class="author-block">
+              <a href="https://jonbarron.info">Yalun Dai</a><sup>4</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?hl=en&user=ZSilWs4AAAAJ">Nian Liu</a><sup>2,*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=PKFAv-cAAAAJ">Lechao Cheng</a><sup>3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://lifuguan.github.io">Jingfeng Li</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://jingdongwang2017.github.io">Jingdong Wang</a><sup>5</sup>
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.ae/citations?user=xrqsoesAAAAJ">Junwei Han</a><sup>1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Brain and Artificial Intelligence Lab, Northwestern Polytechnical University</span>
+            <span class="author-block"><sup>2</sup>MBZUAI</span>
+            <span class="author-block"><sup>3</sup>Hefei University of Technology</span>
+            <span class="author-block"><sup>4</sup>Nanyang Technological Universityh</span>
+            <span class="author-block"><sup>5</sup>Baidu, Inc.</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2311.11863"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2311.11863"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://lifuguan.github.io"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code(Coming Soon)</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <img id="teaser" src="./static/images/teaser.jpg">
+      </img>
+      <h2 class="subtitle has-text-centered">
+        <span class="dnerf">GP-NeRF</span> achieves remarkable performance improvements for instance and semantic segmentation in both synthesis and real-world datasets
+      </h2>
+    </div>
+  </div>
+</section>
+
+<hr> <!-- 这里是分割线 -->
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Method. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-max-desktop">
+        <h2 class="title is-3">Method</h2>
+        <img id="framework" src="./static/images/framework.jpg">
+        </img>
+        <div class="content has-text-justified">
+          <strong>Overview of proposed GP-NeRF.</strong> Given reference views with their poses, we embed NeRF into the segmenter to perform context-aware semantic $Y_{sem}$ /instance $Y_{ins}$ segmentation and ray reconstruction $Y_{rgb}$ in novel view (Sec. 4.1). In detail, we use Transformers to co-aggregate Radiance as well as Semantic-Embedding fields and render them jointly in novel views (Sec. 4.2). Specifically, we propose two self-distillation mechanisms to boost the discrimination and quality of the semantic embedding field (Sec. 4.3).
+        </div>
+      </div>
+    </div>
+    <!--/ Method. -->
+    <div class="columns is-centered">
+
+      <!-- Visual Effects. -->
+      <div class="column">
+        <div class="content">
+          <h2 class="title is-3">Training and Rendering</h2>
+          <img id="framework" src="./static/images/fig3.jpg">
+          <p>
+            Illustration of <strong>training</strong>(a) and <strong>rendering</strong>(b) procedure, where S.E. field denotes Semantic-Embedding Field.
+          </p>
+        </div>
+      </div>
+      <!--/ Visual Effects. -->
+
+      <!-- Matting. -->
+      <div class="column">
+        <h2 class="title is-3">Loss Functions</h2>
+        <div class="columns is-centered">
+          <div class="column content">
+            <img id="framework" src="./static/images/distill.jpg">
+            <p>
+              <strong>2D Semantic Distillation</strong> $\mathcal{L}_{\text {S.D}}$ and <strong>Depth-Guided Semantic Optimization</strong> $\mathcal{L}_{\text {D.G}}$. This figure demonstrates a single raw of our semantic-embedding field.  the network "cheat" by rendering all points $\boldsymbol{f}^{sem}_i$ to the same prediction to satisfy $\mathcal{L}_{\text {S.D}}$ supervision. By performing spatial-wise semantic supervision,  $\mathcal{L}_{\text {S.D}}$ is able to mitigate the issue of "cheating".
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr> <!-- 这里是分割线 -->
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Method. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-max-desktop">
+        <h2 class="title is-3">Benchmarking</h2>
+        <img id="framework" src="./static/images/tab1.jpg">
+        </img>
+        <div class="content has-text-justified">
+          <strong>Quantitative Comparison</strong> with other SOTA methods for generalized and fine-tuning semantic segmentation.
+        </div>
+      </div>
+    </div>
+    <!--/ Method. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-max-desktop">
+        <img id="framework" src="./static/images/fig5.jpg">
+        </img>
+        <div class="content has-text-justified">
+          <strong>Semantic quality comparison in Replica.</strong> On the left, we show the rendering results of S-Ray [17] and GP-NeRF(ours) in generalized and finetuning settings. On the right, we visualize the PCA results of our rendered semantic features in novel views.
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </section>
+
+  <section class="hero is-light is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item item-steve">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/images/office_0/que_pred_ins_img.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-steve">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/images/office_2/que_pred_ins_img.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-steve">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/images/office_3/que_pred_ins_img.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-steve">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/images/room_0/que_pred_ins_img.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-steve">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/images/room_1/que_pred_ins_img.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+          <div class="item item-steve">
+            <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
+              <source src="./static/images/room_2/que_pred_ins_img.mp4"
+                      type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{li2024gp,
+  title={GP-NeRF: Generalized Perception NeRF for Context-Aware 3D Scene Understanding},
+  author={Li, Hao and Zhang, Dingwen and Dai, Yalun and Liu, Nian and Cheng, Lechao and Li, Jingfeng and Wang, Jingdong and Han, Junwei},
+  journal={CVPR},
+  year={2024}
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <a class="icon-link"
+         href="./static/videos/nerfies_paper.pdf">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+      <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This means you are free to borrow the <a
+              href="https://github.com/nerfies/nerfies.github.io">source code</a> of this website,
+            we just ask that you link back to this page in the footer.
+            Please remember to remove the analytics code included in the header of the website which
+            you do not want on your website.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
